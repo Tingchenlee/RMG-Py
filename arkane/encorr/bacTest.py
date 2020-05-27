@@ -43,12 +43,22 @@ import pybel
 from rmgpy import settings
 from rmgpy.molecule import Molecule
 from rmgpy.quantity import ScalarQuantity
+from rmgpy.rmgobject import recursive_make_object
 
 from arkane.encorr.bac import BAC
 from arkane.encorr.data import BACDataset, BOND_SYMBOLS, _pybel_to_rmg
 from arkane.encorr.reference import ReferenceDatabase
 from arkane.exceptions import BondAdditivityCorrectionError
-from arkane.modelchem import LevelOfTheory
+from arkane.modelchem import LevelOfTheory, CompositeLevelOfTheory
+
+
+def _module_make_object(module):
+    module_dict = recursive_make_object(
+        {k: v for k, v in vars(module).items() if not k.startswith('__')},
+        {'LevelOfTheory': LevelOfTheory, 'CompositeLevelOfTheory': CompositeLevelOfTheory}
+    )
+    for k, v in module_dict.items():
+        vars(module)[k] = v
 
 
 class TestBAC(unittest.TestCase):
@@ -240,21 +250,24 @@ class TestBAC(unittest.TestCase):
         # Check that existing Petersson BACs can be overwritten
         self.bac.write_to_database(overwrite=True, alternate_path=tmp_datafile_path)
         spec.loader.exec_module(module)  # Load data as module
-        self.assertEqual(self.bac.bacs, module.pbac[repr(self.bac.level_of_theory)])
+        _module_make_object(module)
+        self.assertEqual(self.bac.bacs, module.pbac[self.bac.level_of_theory])
 
         # Check that new Petersson BACs can be written
         self.bac.level_of_theory = self.lot_nonexisting
         self.bac.bacs = self.tmp_petersson_params
         self.bac.write_to_database(alternate_path=tmp_datafile_path)
         spec.loader.exec_module(module)  # Reload data module
-        self.assertEqual(self.bac.bacs, module.pbac[repr(self.bac.level_of_theory)])
+        _module_make_object(module)
+        self.assertEqual(self.bac.bacs, module.pbac[self.bac.level_of_theory])
 
         # Check that new Melius BACs can be written
         self.bac.bac_type = 'm'
         self.bac.bacs = self.tmp_melius_params
         self.bac.write_to_database(alternate_path=tmp_datafile_path)
         spec.loader.exec_module(module)
-        self.assertEqual(self.bac.bacs, module.mbac[repr(self.bac.level_of_theory)])
+        _module_make_object(module)
+        self.assertEqual(self.bac.bacs, module.mbac[self.bac.level_of_theory])
 
         os.close(tmp_datafile_fd)
         os.remove(tmp_datafile_path)

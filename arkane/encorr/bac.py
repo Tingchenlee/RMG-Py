@@ -821,8 +821,12 @@ class BAC:
                         if overwrite:
                             # Does not overwrite comments
                             del_idx_start = del_idx_end = None
+                            # String representation of self.level_of_theory and level_of_theory in bac_dict might be
+                            # different even if their hashes are the same, so create a mapping between levels of theory
+                            # and their string representations
+                            lot_strs = {k: repr(k) for k in bac_dict.keys()}
                             for j, line2 in enumerate(lines[i:]):
-                                if repr(self.level_of_theory) in line2:
+                                if lot_strs[self.level_of_theory] in line2:
                                     del_idx_start = i + j
                                     del_idx_end = None
                                 elif line2.rstrip() == '    },':  # Can't have comment after final brace

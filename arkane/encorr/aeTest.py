@@ -36,8 +36,19 @@ import os
 import tempfile
 import unittest
 
+from rmgpy.rmgobject import recursive_make_object
+
 from arkane.encorr.ae import AE, SPECIES_LABELS
-from arkane.modelchem import LevelOfTheory
+from arkane.modelchem import LevelOfTheory, CompositeLevelOfTheory
+
+
+def _module_make_object(module):
+    module_dict = recursive_make_object(
+        {k: v for k, v in vars(module).items() if not k.startswith('__')},
+        {'LevelOfTheory': LevelOfTheory, 'CompositeLevelOfTheory': CompositeLevelOfTheory}
+    )
+    for k, v in module_dict.items():
+        vars(module)[k] = v
 
 
 class TestAE(unittest.TestCase):
@@ -102,13 +113,15 @@ class TestAE(unittest.TestCase):
         # Check that existing energies can be overwritten
         self.ae.write_to_database(lot, overwrite=True, alternate_path=tmp_datafile_path)
         spec.loader.exec_module(module)  # Load data as module
-        self.assertEqual(self.ae.atom_energies, module.atom_energies[repr(lot)])
+        _module_make_object(module)
+        self.assertEqual(self.ae.atom_energies, module.atom_energies[lot])
 
         # Check that new energies can be written
         lot = LevelOfTheory('test')
         self.ae.write_to_database(lot, alternate_path=tmp_datafile_path)
         spec.loader.exec_module(module)  # Reload data module
-        self.assertEqual(self.ae.atom_energies, module.atom_energies[repr(lot)])
+        _module_make_object(module)
+        self.assertEqual(self.ae.atom_energies, module.atom_energies[lot])
 
         os.close(tmp_datafile_fd)
         os.remove(tmp_datafile_path)

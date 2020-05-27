@@ -229,8 +229,11 @@ class AE:
                     if overwrite:
                         # Does not overwrite comments
                         del_idx_start = del_idx_end = None
+                        # String representation of key and key in atom_energies dict might be different even if their
+                        # hashes are the same, so create a mapping between keys and their string representations
+                        key_strs = {k: repr(k) for k in data.atom_energies.keys()}
                         for j, line2 in enumerate(lines[i:]):
-                            if repr(key) in line2:
+                            if key_strs[key] in line2:
                                 del_idx_start = i + j
                                 del_idx_end = None
                             elif line2.rstrip() == '    },':  # Can't have a comment after final brace
