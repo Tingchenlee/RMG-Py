@@ -69,6 +69,7 @@ class BACJob:
     def __init__(self,
                  level_of_theory: Union[LevelOfTheory, CompositeLevelOfTheory],
                  bac_type: str = 'p',
+                 crossval: bool = False,
                  write_to_database: bool = False,
                  overwrite: bool = False,
                  **kwargs):
@@ -78,16 +79,21 @@ class BACJob:
         Args:
             level_of_theory: The level of theory that will be used to get training data from the RMG database.
             bac_type: 'p' for Petersson-style BACs, 'm' for Melius-style BACs.
+            crossval: Perform leave-one-out cross-validation (does not write data to database).
             write_to_database: Save the fitted BACs directly to the RMG database.
             overwrite: Overwrite BACs in the RMG database if they already exist.
-            kwargs: Additional parameters passed to BAC.fit.
+            kwargs: Additional parameters passed to BAC.fit or CrossVal.fit.
         """
         self.level_of_theory = level_of_theory
         self.bac_type = bac_type
+        self.crossval = crossval
         self.write_to_database = write_to_database
         self.overwrite = overwrite
         self.kwargs = kwargs
-        self.bac = BAC(level_of_theory, bac_type=bac_type)
+        if crossval:
+            self.bac = CrossVal(level_of_theory, bac_type=bac_type)
+        else:
+            self.bac = BAC(level_of_theory, bac_type=bac_type)
 
     def execute(self, output_directory: str = None, plot: bool = False, jobnum: int = 1):
         """
@@ -108,7 +114,7 @@ class BACJob:
             if plot:
                 self.plot(output_directory, jobnum=jobnum)
 
-        if self.write_to_database:
+        if self.write_to_database and not self.crossval:
             try:
                 self.bac.write_to_database(overwrite=self.overwrite)
             except IOError as e:
@@ -132,10 +138,15 @@ class BACJob:
         with open(output_file1, 'a') as f:
             stats_before = self.bac.dataset.calculate_stats()
             stats_after = self.bac.dataset.calculate_stats(for_bac_data=True)
-            f.write(f'# BAC job {jobnum}: {"Melius" if self.bac.bac_type == "m" else "Petersson"}-type BACs:\n')
+            bac_type_str = f'{"Melius" if self.bac.bac_type == "m" else "Petersson"}-type BACs'
+            if self.crossval:
+                f.write(f'# Job {jobnum}: Cross-validation with {bac_type_str}:\n')
+            else:
+                f.write(f'# Job {jobnum}: {bac_type_str}:\n')
             f.write(f'# RMSE/MAE before fitting: {stats_before.rmse:.2f}/{stats_before.mae:.2f} kcal/mol\n')
             f.write(f'# RMSE/MAE after fitting: {stats_after.rmse:.2f}/{stats_after.mae:.2f} kcal/mol\n')
-            f.writelines(self.bac.format_bacs())
+            if not self.crossval:
+                f.writelines(self.bac.format_bacs())
             f.write('\n')
 
         with open(output_file2, 'w') as f:
@@ -183,8 +194,9 @@ class BACJob:
             return
 
         model_chemistry_formatted = self.level_of_theory.to_model_chem().replace('//', '__').replace('/', '_')
-        correlation_path = os.path.join(output_directory, f'{jobnum}_{model_chemistry_formatted}_correlation.pdf')
-        self.bac.save_correlation_mat(correlation_path)
+        if not self.crossval:
+            correlation_path = os.path.join(output_directory, f'{jobnum}_{model_chemistry_formatted}_correlation.pdf')
+            self.bac.save_correlation_mat(correlation_path)
 
         plt.rcParams.update({'font.size': 16})
         fig_path = os.path.join(output_directory, f'{jobnum}_{model_chemistry_formatted}_errors.pdf')

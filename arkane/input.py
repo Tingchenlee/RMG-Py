@@ -523,7 +523,8 @@ def ae(species_energies, level_of_theory=None, write_to_database=False, overwrit
     job_list.append(job)
 
 
-def bac(level_of_theory, bac_type='p', train_names='main',
+def bac(level_of_theory, bac_type='p', train_names='main', crossval=False,
+        idxs=None, exclude_idxs=None,
         exclude_elements=None, charge='all', multiplicity='all',
         weighted=False, write_to_database=False, overwrite=False,
         fit_mol_corr=True, global_opt=True, global_opt_iter=10):
@@ -533,6 +534,9 @@ def bac(level_of_theory, bac_type='p', train_names='main',
         level_of_theory,
         bac_type=bac_type,
         db_names=train_names,
+        crossval=crossval,
+        idxs=idxs,
+        exclude_idxs=exclude_idxs,
         exclude_elements=exclude_elements,
         charge=charge,
         multiplicity=multiplicity,
