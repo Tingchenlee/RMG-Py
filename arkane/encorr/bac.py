@@ -49,6 +49,7 @@ from typing import Dict, Iterable, List, Sequence, Set, Tuple, Union
 
 import numpy as np
 import scipy.optimize as optimize
+from sklearn.model_selection import LeaveOneOut
 
 from rmgpy.quantity import ScalarQuantity
 
@@ -928,6 +929,86 @@ class BAC:
         ax.tick_params(bottom=False, top=False, left=False, right=False)
 
         fig.savefig(path, dpi=600, bbox_inches='tight', pad_inches=0)
+
+
+class CrossVal:
+    """
+    A class for BAC fitting with cross-validation.
+    """
+
+    def __init__(self, level_of_theory: Union[LevelOfTheory, CompositeLevelOfTheory],
+                 bac_type: str = 'p',
+                 val_type: str = 'leave-one-out'):
+        """
+        Initialize a CrossVal instance.
+
+        Args:
+            level_of_theory: Level of theory for getting data from reference database.
+            bac_type: Type of BACs to fit ('p' for Petersson and 'm' for Melius).
+            val_type: Type of cross-validation.
+        """
+        self.level_of_theory = level_of_theory
+        self.bac_type = bac_type
+        self.val_type = val_type
+
+        self.dataset = None  # Complete dataset containing cross-validation estimates for each data point
+        self.bacs = None  # List of BAC instances, one for each fold
+
+    @property
+    def val_type(self) -> str:
+        return self._val_type
+
+    @val_type.setter
+    def val_type(self, val: str):
+        self._val_type = val.lower().replace('-', '').replace(' ', '')
+
+    def fit(self,
+            db_names: Union[str, List[str]] = 'main',
+            idxs: Union[Sequence[int], Set[int], int] = None,
+            exclude_idxs: Union[Sequence[int], Set[int], int] = None,
+            exclude_elements: Union[Sequence[str], Set[str], str] = None,
+            charge: Union[Sequence[Union[str, int]], Set[Union[str, int]], str, int] = 'all',
+            multiplicity: Union[Sequence[int], Set[int], int, str] = 'all',
+            **kwargs):
+        """
+        Run cross-validation.
+
+        Args:
+            db_names: Optionally specify database names to train on (defaults to main).
+            idxs: Only include reference species with these indices in the training data.
+            exclude_idxs: Exclude reference species with these indices from the training data.
+            exclude_elements: Molecules with any of the elements in this sequence are excluded from training data.
+            charge: Allowable charges for molecules in training data.
+            multiplicity: Allowable multiplicites for molecules in training data.
+            kwargs: Parameters passed to BAC.fit.
+        """
+        database_key = BAC.load_database(names=db_names)
+        self.dataset = extract_dataset(BAC.ref_databases[database_key], self.level_of_theory,
+                                       idxs=idxs, exclude_idxs=exclude_idxs,
+                                       exclude_elements=exclude_elements, charge=charge, multiplicity=multiplicity)
+        self.bacs = []
+
+        if self.val_type == 'leaveoneout':
+            logging.info(f'Starting leave-one-out cross-validation for {self.level_of_theory}')
+            folds = LeaveOneOut().split(self.dataset)
+        else:
+            raise NotImplementedError(f'{self.val_type} cross-validation is not implemented')
+
+        for i, (train, test) in enumerate(folds):
+            logging.info(f'Fold {i}')
+            train_idxs = [self.dataset[i].spc.index for i in train]
+            test_data = BACDataset([self.dataset[i] for i in test])
+            logging.info(f'Testing on species {", ".join(str(d.spc.index) for d in test_data)}')
+            bac = BAC(self.level_of_theory, self.bac_type)
+            bac.fit(db_names=db_names, idxs=train_idxs, **kwargs)
+            bac.test(dataset=test_data)  # Stores predictions in each BACDatapoint
+            self.bacs.append(bac)
+
+        stats_before = self.dataset.calculate_stats()
+        stats_after = self.dataset.calculate_stats(for_bac_data=True)
+        logging.info('Cross-validation results:')
+        logging.info(f'RMSE/MAE before fitting: {stats_before.rmse:.2f}/{stats_before.mae:.2f} kcal/mol')
+        logging.info(f'RMSE/MAE after fitting: {stats_after.rmse:.2f}/{stats_after.mae:.2f} kcal/mol')
 
 
 def _covariance_to_correlation(cov: np.ndarray) -> np.ndarray:
