@@ -126,7 +126,7 @@ class TestDatabase(object):  # cannot inherit from unittest.TestCase if we want 
 
             # these families have some sort of difficulty which prevents us from testing accessibility right now
             difficult_families = ['Diels_alder_addition', 'Intra_R_Add_Exocyclic', 'Intra_R_Add_Endocyclic']
-            generated_trees = ["R_Recombination"]
+            generated_trees = ["R_Recombination", "2+2_cycloaddition"]
 
             if len(family.forward_template.reactants) < len(family.groups.top) and family_name not in difficult_families:
                 test = lambda x: self.kinetics_check_unimolecular_groups(family_name)
