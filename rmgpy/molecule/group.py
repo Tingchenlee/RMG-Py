@@ -346,7 +346,7 @@ class GroupAtom(Vertex):
         where `other` can be either an :class:`Atom` or an :class:`GroupAtom`
         object. When comparing two :class:`GroupAtom` objects, this function
         respects wildcards, e.g. ``R!H`` is equivalent to ``C``.
-        
+
         """
         cython.declare(group=GroupAtom)
         if not strict:
@@ -416,7 +416,7 @@ class GroupAtom(Vertex):
         """
         Returns ``True`` if `self` is the same as `other` or is a more
         specific case of `other`. Returns ``False`` if some of `self` is not
-        included in `other` or they are mutually exclusive. 
+        included in `other` or they are mutually exclusive.
         """
         cython.declare(group=GroupAtom)
         if not isinstance(other, GroupAtom):
@@ -589,6 +589,7 @@ class GroupAtom(Vertex):
                               'Cl': 3,
                               'F': 3,
                               'I': 3,
+                              'Br': 3,
                               'Ar': 4,
                               'X': 0,
                               }
@@ -764,7 +765,7 @@ class GroupBond(Edge):
         not. If `wildcards` is ``False`` we return False anytime there is more
         than one bond order, otherwise we return ``True`` if any of the options
         are single.
-        
+
         NOTE: we can replace the absolute value relation with math.isclose when
         we swtich to python 3.5+
         """
@@ -982,13 +983,13 @@ class Group(Graph):
     """
     A representation of a molecular substructure group using a graph data
     type, extending the :class:`Graph` class. The attributes are:
-    
+
     =================== =================== ====================================
     Attribute           Type                Description
     =================== =================== ====================================
     `atoms`             ``list``            Aliases for the `vertices` storing :class:`GroupAtom`
     `multiplicity`      ``list``            Range of multiplicities accepted for the group
-    `props`             ``dict``            Dictionary of arbitrary properties/flags classifying state of Group object 
+    `props`             ``dict``            Dictionary of arbitrary properties/flags classifying state of Group object
     =================== =================== ====================================
 
     Corresponding alias methods to Molecule have also been provided.
@@ -1854,7 +1855,7 @@ class Group(Graph):
         if not isinstance(other, Group):
             raise TypeError(
                 'Got a {0} object for parameter "other", when a Group object is required.'.format(other.__class__))
-        # An identical group is always a child of itself and 
+        # An identical group is always a child of itself and
         # is the only case where that is true. Therefore
         # if we do both directions of isSubgraphIsmorphic, we need
         # to get True twice for it to be identical
@@ -2195,7 +2196,7 @@ class Group(Graph):
         are many dangling Cb or Cbf atoms not in a ring, it is likely fail. In the database test
         (the only use thus far), we will require that any group with more than 3 Cbfs have
         complete rings. This is much stricter than this method can handle, but right now
-        this method cannot handle very general cases, so it is better to be conservative. 
+        this method cannot handle very general cases, so it is better to be conservative.
         """
 
         # First define some helper functions
