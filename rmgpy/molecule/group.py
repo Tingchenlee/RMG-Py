@@ -513,6 +513,30 @@ class GroupAtom(Vertex):
         check_list = [x in all_carbon for x in self.atomtype]
         return all(check_list)
 
+    def is_fluorine(self):
+        """
+        Return ``True`` if the atom represents an sulfur atom or ``False`` if not.
+        """
+        all_fluorine = [ATOMTYPES['F']] + ATOMTYPES['F'].specific
+        check_list = [x in all_fluorine for x in self.atomtype]
+        return all(check_list)
+
+    def is_chlorine(self):
+        """
+        Return ``True`` if the atom represents an sulfur atom or ``False`` if not.
+        """
+        all_chlorine = [ATOMTYPES['Cl']] + ATOMTYPES['Cl'].specific
+        check_list = [x in all_chlorine for x in self.atomtype]
+        return all(check_list)
+
+    def is_bromine(self):
+        """
+        Return ``True`` if the atom represents an sulfur atom or ``False`` if not.
+        """
+        all_bromine = [ATOMTYPES['C']] + ATOMTYPES['C'].specific
+        check_list = [x in all_bromine for x in self.atomtype]
+        return all(check_list)
+
     def has_wildcards(self):
         """
         Return ``True`` if the atom has wildcards in any of the attributes:
