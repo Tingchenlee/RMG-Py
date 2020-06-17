@@ -530,7 +530,7 @@ cdef class HinderedRotor(Torsion):
         # because it is the number of terms of either the cosine or sine fit
 
         maxterms = np.floor(len(angle) / 3.0)
-        while negative_barrier and numterms < maxterms:
+        while negative_barrier and numterms <= maxterms:
             # Fit Fourier series potential
             N = V.shape[0]
             # A: [1, cos(phi), ..., cos(M * phi), sin(phi), ..., sin(M * phi)]
