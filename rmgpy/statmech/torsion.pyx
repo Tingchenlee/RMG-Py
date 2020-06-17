@@ -56,7 +56,7 @@ RCOND = -1 if int(np.__version__.split('.')[1]) < 14 else None
 cdef class Torsion(Mode):
     """
     A base class for all torsional degrees of freedom. The attributes are:
-    
+
     ======================== ===================================================
     Attribute                Description
     ======================== ===================================================
@@ -66,7 +66,7 @@ cdef class Torsion(Mode):
 
     In the majority of chemical applications, the torsional energy levels are
     mostly close together compared to :math:`k_\\mathrm{B} T`, which makes the
-    torsional motion well-approximated by a semiclassical treatment. 
+    torsional motion well-approximated by a semiclassical treatment.
     """
 
     def __init__(self, symmetry=1, quantum=False):
@@ -102,7 +102,7 @@ cdef class HinderedRotor(Torsion):
     """
     A statistical mechanical model of a one-dimensional hindered rotor.
     The attributes are:
-    
+
     ======================== ===================================================
     Attribute                Description
     ======================== ===================================================
@@ -243,7 +243,7 @@ cdef class HinderedRotor(Torsion):
 
     cpdef np.ndarray solve_schrodinger_equation(self, int n_basis=401):
         """
-        Solves the one-dimensional time-independent Schrodinger equation to 
+        Solves the one-dimensional time-independent Schrodinger equation to
         determine the energy levels of a one-dimensional hindered rotor with a
         Fourier series potential using `n_basis` basis functions. For the
         purposes of this function it is usually sufficient to use 401 basis
@@ -436,7 +436,7 @@ cdef class HinderedRotor(Torsion):
     cpdef np.ndarray get_sum_of_states(self, np.ndarray e_list, np.ndarray sum_states_0=None):
         """
         Return the sum of states :math:`N(E)` at the specified energies `e_list`
-        in J/mol above the ground state. If an initial sum of states 
+        in J/mol above the ground state. If an initial sum of states
         `sum_states_0` is given, the rotor sum of states will be convoluted into
         these states.
         """
@@ -526,11 +526,11 @@ cdef class HinderedRotor(Torsion):
         numterms = 6
         cdef bint negative_barrier
         negative_barrier = True
-        # numterms is actually half the number of terms. It is called numterms 
+        # numterms is actually half the number of terms. It is called numterms
         # because it is the number of terms of either the cosine or sine fit
 
-        maxterms = np.floor(len(angle) / 3.0)
-        while negative_barrier and numterms < maxterms:
+        maxterms = np.floor(len(angle) / 2.0)
+        while negative_barrier and numterms <= maxterms:
             # Fit Fourier series potential
             N = V.shape[0]
             A = np.zeros((N + 1, 2 * numterms), np.float64)
@@ -570,7 +570,7 @@ cdef class HinderedRotor(Torsion):
     cpdef fit_cosine_potential_to_data(self, np.ndarray angle, np.ndarray V):
         """
         Fit the given angles in radians and corresponding potential energies in
-        J/mol to the cosine potential. For best results, the angle should 
+        J/mol to the cosine potential. For best results, the angle should
         begin at zero and end at :math:`2 \pi`, with the minimum energy
         conformation having a potential of zero be placed at zero angle. The
         fit is attempted at several possible values of the symmetry number in
@@ -599,10 +599,10 @@ cdef class HinderedRotor(Torsion):
 
 cdef class FreeRotor(Torsion):
     """
-    A statistical mechanical model of a one-dimensional hindered rotor.  
-    Based on Pfaendtner et al. 2007.  
+    A statistical mechanical model of a one-dimensional hindered rotor.
+    Based on Pfaendtner et al. 2007.
     The attributes are:
-    
+
     ======================== ===================================================
     Attribute                Description
     ======================== ===================================================
@@ -698,7 +698,7 @@ cdef class FreeRotor(Torsion):
     cpdef np.ndarray get_sum_of_states(self, np.ndarray e_list, np.ndarray sum_states_0=None):
         """
         Return the sum of states :math:`N(E)` at the specified energies `e_list`
-        in J/mol above the ground state. 
+        in J/mol above the ground state.
         formula from
         Forst 1995 Journal of Computational Chemistry, Vol. 17, No. 8 954-961 (1996)
         """
