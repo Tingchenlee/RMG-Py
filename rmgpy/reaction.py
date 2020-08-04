@@ -871,13 +871,36 @@ class Reaction:
         kr.fit_to_data(Tlist, klist, reverse_units, kf.T0.value_si)
         return kr
 
-    def generate_reverse_rate_coefficient(self, network_kinetics=False, Tmin=None, Tmax=None):
+    def reverse_surface_charge_transfer_arrhenius_rate(self, k_forward, reverse_units, Tmin=None, Tmax=None, V=0.0):
+        """
+        Reverses the given k_forward, which must be a SurfaceChargeTransfer type.
+        You must supply the correct units for the reverse rate.
+        The equilibrium constant is evaluated from the current reaction instance (self).
+        """
+        cython.declare(kf=SurfaceChargeTransfer, kr=SurfaceChargeTransfer)
+        cython.declare(Tlist=np.ndarray, klist=np.ndarray, i=cython.int)
+        kf = k_forward
+        if not isinstance(kf, SurfaceChargeTransfer): # Only reverse SurfaceChargeTransfer rates
+            raise TypeError(f'Expected a SurfaceChargeTransfer object for k_forward but received {kf}')
+        if Tmin is not None and Tmax is not None:
+            Tlist = 1.0 / np.linspace(1.0 / Tmax.value, 1.0 / Tmin.value, 50)
+        else:
+            Tlist = 1.0 / np.arange(0.0005, 0.0034, 0.0001)
+        # Determine the values of the reverse rate coefficient k_r(T) at each temperature
+        klist = np.zeros_like(Tlist)
+        for i in range(len(Tlist)):
+            klist[i] = kf.get_rate_coefficient(Tlist[i],V) / self.get_equilibrium_constant(Tlist[i],V)
+        kr = SurfaceChargeTransfer(a=self.a, ne=self.ne)
+        kr.fit_to_data(Tlist, klist, reverse_units, kf.T0.value_si, V)
+        return kr
+
+    def generate_reverse_rate_coefficient(self, network_kinetics=False, Tmin=None, Tmax=None, V=0.0):
         """
         Generate and return a rate coefficient model for the reverse reaction.
         Currently this only works if the `kinetics` attribute is one of several
         (but not necessarily all) kinetics types.
         """
-        cython.declare(Tlist=np.ndarray, Plist=np.ndarray, K=np.ndarray,
+        cython.declare(prods=cython.int, Tlist=np.ndarray, Plist=np.ndarray, K=np.ndarray,
                        rxn=Reaction, klist=np.ndarray, i=cython.size_t,
                        Tindex=cython.size_t, Pindex=cython.size_t)
 
@@ -885,6 +908,7 @@ class Reaction:
             KineticsData.__name__,
             Arrhenius.__name__,
             SurfaceArrhenius.__name__,
+            SurfaceChargeTransfer.__name__,
             MultiArrhenius.__name__,
             PDepArrhenius.__name__,
             MultiPDepArrhenius.__name__,
@@ -895,7 +919,14 @@ class Reaction:
         )
 
         # Get the units for the reverse rate coefficient
-        kunits = get_rate_coefficient_units_from_reaction_order(len(self.products))
+        if self.is_charge_transfer_reaction():
+            prods = 0
+            for prod in self.products:
+                if not prod.is_electron():
+                    prods += 1
+            kunits = get_rate_coefficient_units_from_reaction_order(prods)
+        else:
+            kunits = get_rate_coefficient_units_from_reaction_order(len(self.products))
 
         kf = self.kinetics
         if isinstance(kf, KineticsData):
@@ -908,6 +939,9 @@ class Reaction:
             kr = KineticsData(Tdata=(Tlist, "K"), kdata=(klist, kunits), Tmin=(np.min(Tlist), "K"),
                               Tmax=(np.max(Tlist), "K"))
             return kr
+
+        if isinstance(kf, SurfaceChargeTransfer):
+            return self.reverse_surface_charge_transfer_arrhenius_rate(kf, kunits, Tmin, Tmax, V)
 
         elif isinstance(kf, Arrhenius):
             if isinstance(kf, SurfaceArrhenius):
