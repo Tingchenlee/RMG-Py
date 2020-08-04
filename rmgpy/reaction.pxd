@@ -87,7 +87,7 @@ cdef class Reaction:
 
     cpdef double get_free_energy_of_reaction(self, double T, V=?)
 
-    cpdef double get_equilibrium_constant(self, double T, str type=?)
+    cpdef double get_equilibrium_constant(self, double T, V=?, str type=?)
 
     cpdef np.ndarray get_enthalpies_of_reaction(self, np.ndarray Tlist)
 

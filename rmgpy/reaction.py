@@ -595,7 +595,7 @@ class Reaction:
                                                                          # where nF(V0-V) is from applied potential
         return dGrxn
 
-    def get_equilibrium_constant(self, T, type='Kc'):
+    def get_equilibrium_constant(self, T, V=None, type='Kc'):
         """
         Return the equilibrium constant for the reaction at the specified
         temperature `T` in K. The `type` parameter lets	you specify the
@@ -603,19 +603,33 @@ class Reaction:
         ``Kc`` for concentrations (default), or ``Kp`` for pressures. Note that
         this function currently assumes an ideal gas mixture.
         """
-        cython.declare(dGrxn=cython.double, K=cython.double, C0=cython.double, P0=cython.double)
+        cython.declare(prods=cython.int, reacts=cython.int, dGrxn=cython.double, K=cython.double, C0=cython.double, P0=cython.double)
         # Use free energy of reaction to calculate Ka
-        dGrxn = self.get_free_energy_of_reaction(T)
+        dGrxn = self.get_free_energy_of_reaction(T,V)
         K = np.exp(-dGrxn / constants.R / T)
         # Convert Ka to Kc or Kp if specified
         P0 = 1e5
+
+        if self.is_charge_transfer_reaction():
+            prods = 0
+            reacts = 0
+            for prod in self.products():
+                if not prod.is_electron():
+                    prods += 1
+            for react in self.reactants():
+                if not react.is_electron():
+                    reacts += 1
+        else:
+            prods = len(self.products)
+            reacts = len(self.reactants)
+
         if type == 'Kc':
             # Convert from Ka to Kc; C0 is the reference concentration
             C0 = P0 / constants.R / T
-            K *= C0 ** (len(self.products) - len(self.reactants))
+            K *= C0 ** (prods - reacts)
         elif type == 'Kp':
             # Convert from Ka to Kp; P0 is the reference pressure
-            K *= P0 ** (len(self.products) - len(self.reactants))
+            K *= P0 ** (prods - reacts)
         elif type != 'Ka' and type != '':
             raise ReactionError('Invalid type "{0}" passed to Reaction.get_equilibrium_constant(); '
                                 'should be "Ka", "Kc", or "Kp".'.format(type))
