@@ -1179,6 +1179,8 @@ class Molecule(Graph):
         using the new connectivity values.
         """
 
+        self.update_lone_pairs()
+
         for atom in self.atoms:
             atom.update_charge()
 
