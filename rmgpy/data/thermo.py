@@ -1964,7 +1964,7 @@ class ThermoDatabase(object):
         # Generate estimates of the thermodynamics parameters
         for atom in molecule.atoms:
             # Iterate over heavy (non-hydrogen) atoms
-            if atom.is_non_hydrogen():
+            if atom.is_non_hydrogen() and not atom.is_halogen():
                 # Get initial thermo estimate from main group database
                 data_added = False
                 try:

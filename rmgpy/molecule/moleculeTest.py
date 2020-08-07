@@ -126,7 +126,7 @@ class TestAtom(unittest.TestCase):
         """
         for element in element_list:
             atom = Atom(element=element, radical_electrons=1, charge=0, label='*1', lone_pairs=3)
-            if element.symbol in ['F','Cl','Br','I']:
+            if element.symbol in ['F', 'Cl', 'Br', 'I']:
                 self.assertTrue(atom.is_halogen())
             else:
                 self.assertFalse(atom.is_halogen(), "Atom {0!r} isn't reporting is_halogen()".format(atom))
