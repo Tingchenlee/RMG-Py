@@ -340,10 +340,7 @@ class Atom(Vertex):
         Return ``True`` if the atom represents a halogen atom (F, Cl, Br, I)
         ``False`` if it does.
         """
-        if self.element.number in [9, 17, 35, 53]:
-            return True
-        else:
-            return False
+        return self.element.number in [9, 17, 35, 53]
 
     def is_carbon(self):
         """
