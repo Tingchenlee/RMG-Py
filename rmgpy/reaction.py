@@ -564,16 +564,16 @@ class Reaction:
             dSrxn += product.get_entropy(T)
         return dSrxn
 
-    def get_free_energy_of_reaction(self, T, V=None):
+    def get_free_energy_of_reaction(self, T, potential=None):
         """
         Return the Gibbs free energy of reaction in J/mol evaluated at
-        temperature `T` in K and Potential `V` in Volts (optional)
+        temperature `T` in K and potential in Volts (if applicable)
         """
         cython.declare(dGrxn=cython.double, reactant=Species, product=Species)
         dGrxn = 0.0
 
         if self.is_charge_transfer_reaction() and self.V0:
-            dGrxn = -1 * abs(self.ne) * constants.F * self.V0.value_si # G = -nFE0
+            dGrxn = -1 * abs(self.ne) * constants.F * self.V0.value_si # G = -nFE0 in J/mol
         else:
             for reactant in self.reactants:
                 if not reactant.is_electron():
@@ -590,22 +590,23 @@ class Reaction:
                         logging.error("Problem with product {!r} in reaction {!s}".format(reactant, self))
                         raise
 
-        if self.is_charge_transfer_reaction() and V is not None:
-            dGrxn += self.ne * constants.F * (self.V0.value_si - V)  # Not sure about sign here or equation G = -nFE0 + nF(V0-V)
-                                                                         # where nF(V0-V) is from applied potential
+        if self.is_charge_transfer_reaction() and potential is not None:
+            dGrxn += (dGrxn - self.ne * constants.F * potential)    # Not sure about sign here or equation G = -nFE0 + nF(V0-V)
+                                                                    # where nF(V0-V) is from applied potential
         return dGrxn
 
-    def get_equilibrium_constant(self, T, V=None, type='Kc'):
+    def get_equilibrium_constant(self, T, potential=None, type='Kc'):
         """
         Return the equilibrium constant for the reaction at the specified
-        temperature `T` in K. The `type` parameter lets	you specify the
+        temperature `T` in K and (electrochemical) potential in volts (if applicable).
+        The `type` parameter lets	you specify the
         quantities used in the equilibrium constant: ``Ka`` for	activities,
         ``Kc`` for concentrations (default), or ``Kp`` for pressures. Note that
         this function currently assumes an ideal gas mixture.
         """
         cython.declare(prods=cython.int, reacts=cython.int, dGrxn=cython.double, K=cython.double, C0=cython.double, P0=cython.double)
         # Use free energy of reaction to calculate Ka
-        dGrxn = self.get_free_energy_of_reaction(T,V)
+        dGrxn = self.get_free_energy_of_reaction(T, potential)
         K = np.exp(-dGrxn / constants.R / T)
         # Convert Ka to Kc or Kp if specified
         P0 = 1e5
@@ -666,7 +667,7 @@ class Reaction:
         ``Kc`` for concentrations (default), or ``Kp`` for pressures. Note that
         this function currently assumes an ideal gas mixture.
         """
-        return np.array([self.get_equilibrium_constant(T, type) for T in Tlist], np.float64)
+        return np.array([self.get_equilibrium_constant(T, type=type) for T in Tlist], np.float64)
 
     def get_stoichiometric_coefficient(self, spec):
         """
@@ -871,7 +872,7 @@ class Reaction:
         kr.fit_to_data(Tlist, klist, reverse_units, kf.T0.value_si)
         return kr
 
-    def reverse_surface_charge_transfer_arrhenius_rate(self, k_forward, reverse_units, Tmin=None, Tmax=None, V=0.0):
+    def reverse_surface_charge_transfer_arrhenius_rate(self, k_forward, reverse_units, Tmin=None, Tmax=None, potential=0):
         """
         Reverses the given k_forward, which must be a SurfaceChargeTransfer type.
         You must supply the correct units for the reverse rate.
@@ -889,12 +890,12 @@ class Reaction:
         # Determine the values of the reverse rate coefficient k_r(T) at each temperature
         klist = np.zeros_like(Tlist)
         for i in range(len(Tlist)):
-            klist[i] = kf.get_rate_coefficient(Tlist[i],V) / self.get_equilibrium_constant(Tlist[i],V)
+            klist[i] = kf.get_rate_coefficient(Tlist[i], potential) / self.get_equilibrium_constant(Tlist[i], potential)
         kr = SurfaceChargeTransfer(a=self.a, ne=self.ne)
-        kr.fit_to_data(Tlist, klist, reverse_units, kf.T0.value_si, V)
+        kr.fit_to_data(Tlist, klist, reverse_units, kf.T0.value_si, potential)
         return kr
 
-    def generate_reverse_rate_coefficient(self, network_kinetics=False, Tmin=None, Tmax=None, V=0.0):
+    def generate_reverse_rate_coefficient(self, network_kinetics=False, Tmin=None, Tmax=None, potential=0):
         """
         Generate and return a rate coefficient model for the reverse reaction.
         Currently this only works if the `kinetics` attribute is one of several
@@ -941,7 +942,7 @@ class Reaction:
             return kr
 
         if isinstance(kf, SurfaceChargeTransfer):
-            return self.reverse_surface_charge_transfer_arrhenius_rate(kf, kunits, Tmin, Tmax, V)
+            return self.reverse_surface_charge_transfer_arrhenius_rate(kf, kunits, Tmin, Tmax, potential)
 
         elif isinstance(kf, Arrhenius):
             if isinstance(kf, SurfaceArrhenius):
