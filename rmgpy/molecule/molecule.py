@@ -2100,9 +2100,15 @@ class Molecule(Graph):
 
     def generate_resonance_structures(self, keep_isomorphic=False, filter_structures=True):
         """Returns a list of resonance structures of the molecule."""
-        return resonance.generate_resonance_structures(self, keep_isomorphic=keep_isomorphic,
+        try:
+            mols = resonance.generate_resonance_structures(self, keep_isomorphic=keep_isomorphic,
                                                        filter_structures=filter_structures)
+        except:
+            logging.warning("Failed to generate resonance structures for {}".format(self.to_smiles()))
+            mols = [self.copy(deep=True)]
 
+        return mols
+                                    
     def get_url(self):
         """
         Get a URL to the molecule's info page on the RMG website.
