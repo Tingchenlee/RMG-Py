@@ -10,8 +10,13 @@ database(
 )
 
 catalystProperties(
-    metal = 'Pt111'
-
+    bindingEnergies= {
+                         'H':(-2.75367887E+00, 'eV/molecule'),
+                         'C':(-7.02515507E+00, 'eV/molecule'),
+                         'N':(-4.63224568E+00, 'eV/molecule'),
+                         'O':(-3.81153179E+00, 'eV/molecule'),
+                      },
+    surfaceSiteDensity=(2.483E-09, 'mol/cm^2'),
 )
 
 species(
