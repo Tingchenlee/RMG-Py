@@ -1323,7 +1323,12 @@ Origin Group AdjList:
         if len(sample_reactants) == 1 == len(family.forward_template.reactants):
             reactants = list(sample_reactants.values())[0]
             for reactant in reactants:
-                products = family.apply_recipe([reactant])
+                try:
+                    products = family.apply_recipe([reactant])
+                except Exception as e:
+                    test1.append(make_error_message([reactant],
+                          message=f"During apply_recipe had an {type(e)!s}: {e!s}"))
+                    continue
                 if products is None:
                     test1.append(make_error_message([reactant],
                         message="apply_recipe returned None, indicating wrong number of products or a charged product."))
@@ -1338,7 +1343,12 @@ Origin Group AdjList:
             reactant_lists = [sample_reactants[k] for k in family.forward_template.reactants ]
             pairs = zip(*reactant_lists)
             for reactant1, reactant2 in pairs:
-                products = family.apply_recipe([reactant1, reactant2])
+                try:
+                    products = family.apply_recipe([reactant1, reactant2])
+                except Exception as e:
+                    test1.append(make_error_message([reactant1, reactant2],
+                          message=f"During apply_recipe had an {type(e)!s}: {e!s}"))
+                    continue
                 if products is None:
                     test1.append(make_error_message([reactant1, reactant2],
                         message="apply_recipe returned None, indicating wrong number of products or a charged product."))
@@ -1356,7 +1366,12 @@ Origin Group AdjList:
             else:
                 pairs = zip(itertools.cycle(sr[0]), sr[1])
             for reactant1, reactant2 in pairs:
-                products = family.apply_recipe([reactant1, reactant2])
+                try:
+                    products = family.apply_recipe([reactant1, reactant2])
+                except Exception as e:
+                    test1.append(make_error_message([reactant1, reactant2],
+                          message=f"During apply_recipe had an {type(e)!s}: {e!s}"))
+                    continue
                 if products is None:
                     test1.append(make_error_message([reactant1, reactant2],
                         message="apply_recipe returned None, indicating wrong number of products or a charged product."))
@@ -1378,7 +1393,12 @@ Origin Group AdjList:
                 assert longest == 2
                 triplets = zip(itertools.cycle(sr[0]), itertools.cycle(sr[1]), sr[2])
             for reactant1, reactant2, reactant3 in triplets:
-                products = family.apply_recipe([reactant1, reactant2, reactant3])
+                try:
+                    products = family.apply_recipe([reactant1, reactant2, reactant3])
+                except Exception as e:
+                    test1.append(make_error_message([reactant1, reactant2, reactant3],
+                          message=f"During apply_recipe had an {type(e)!s}: {e!s}"))
+                    continue
                 if products is None:
                     test1.append(make_error_message([reactant1, reactant2, reactant3],
                         message="apply_recipe returned None, indicating wrong number of products or a charged product."))
