@@ -1,17 +1,16 @@
-
 database(
     thermoLibraries=['surfaceThermoPt111', 'primaryThermoLibrary'],
-    reactionLibraries = [], 
+    reactionLibraries = ['Surface/CPOX_Pt/Deutschmann2006'],
     seedMechanisms = [],
     kineticsDepositories = ['training'],
-    kineticsFamilies = ['Surface_Adsorption_Abstraction_vdW'], # <<<<< ONLY ONE REACTION FAMILY
+    kineticsFamilies = ['surface','default'],
     kineticsEstimator = 'rate rules',
 
 )
 
 catalystProperties(
-    bindingEnergies= {
-                         'H':(-2.75367887E+00, 'eV/molecule'),
+    bindingEnergies= {  #Pt111
+    		             'H':(-2.75367887E+00, 'eV/molecule'),
                          'C':(-7.02515507E+00, 'eV/molecule'),
                          'N':(-4.63224568E+00, 'eV/molecule'),
                          'O':(-3.81153179E+00, 'eV/molecule'),
@@ -20,54 +19,35 @@ catalystProperties(
 )
 
 species(
-   label='N#N.[Pt]',
-   reactive=True,
-   structure=adjacencyList(
-       """
-1  N u0 p1 c0 {2,T}
-2  N u0 p1 c0 {1,T}
-3  X u0 p0 c0
-"""),
+    label='H2O',
+    reactive=True,
+    structure=SMILES("O"),
 )
-
-species(
-   label='[Pt]N=N',
-   reactive=True,
-   structure=adjacencyList(
-       """
-1  N u0 p1 c0 {2,D} {4,S}
-2  N u0 p1 c0 {1,D} {3,S}
-3  H u0 p0 c0 {2,S}
-4  X u0 p0 c0 {1,S}
-"""),
-)
-
 
 species(
     label='N2',
-    reactive=False,
+    reactive=True,
     structure=SMILES("N#N"),
 )
 
 species(
-    label='vacantX',
+    label='X',
     reactive=True,
     structure=adjacencyList("1 X u0"),
 )
-#----------
-# Reaction systems
-surfaceReactor(
-    temperature=(800,'K'),
-    initialPressure=(1.0, 'bar'),
+
+surfaceReactor(  
+    temperature=(723,'K'),
+    initialPressure=(50.0, 'bar'),
     initialGasMoleFractions={
-        "N2": 1.0,
+        "H2O": 0.5,
+        "N2": 0.5,
     },
     initialSurfaceCoverages={
-        "vacantX": 0.5,
-        "N#N.[Pt]": 0.25,
-        "[Pt]N=N": 0.25
+        "X": 1.0,
     },
     surfaceVolumeRatio=(1.e5, 'm^-1'),
+    terminationConversion = { "N2":0.80,},
     terminationTime=(0.1, 's'),
 )
 
@@ -76,17 +56,21 @@ simulator(
     rtol=1e-12,
 )
 
-model(
+model( 
     toleranceKeepInEdge=0.0,
-    toleranceMoveToCore=1e-5,
-    toleranceInterruptSimulation=0.1,
+    toleranceMoveToCore=0.00000001,
+    toleranceInterruptSimulation=1,
     maximumEdgeSpecies=100000,
+    minCoreSizeForPrune=150,
+    toleranceThermoKeepSpeciesInEdge=0.5,
+    minSpeciesExistIterationsForPrune=4,
 )
 
 options(
     units='si',
+    saveRestartPeriod=None,
     generateOutputHTML=True,
-    generatePlots=False,
+    generatePlots=True, 
     saveEdgeSpecies=True,
     saveSimulationProfiles=True,
 )
