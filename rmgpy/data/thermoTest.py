@@ -787,6 +787,31 @@ multiplicity 2
         self.assertTrue('Adsorption correction' in thermo.comment,
                         'Adsorption correction not added to thermo.')
 
+    def test_adsorbate_thermo_generation_bidentate_asymmetric_NNOH(self):
+        """Test thermo generation for a bidentate adsorbate, N(=X)N(X)OH
+
+        N--N--O-H
+        ‖  |
+        X  X
+        """
+        spec = Species(molecule=[Molecule().from_adjacency_list("""
+1 O u0 p2 c0 {2,S} {4,S}
+2 N u0 p1 c0 {1,S} {3,S} {5,S}
+3 N u0 p1 c0 {2,S} {6,D}
+4 H u0 p0 c0 {1,S}
+5 X u0 p0 c0 {2,S}
+6 X u0 p0 c0 {3,D}""")])
+        spec.generate_resonance_structures()
+        initial = list(spec.molecule)  # Make a copy of the list
+        thermo = self.database.get_thermo_data(spec)
+        self.assertEqual(len(initial), len(spec.molecule))
+        self.assertEqual(set(initial), set(spec.molecule))
+        self.assertTrue('Adsorption correction' in thermo.comment,
+                        'Adsorption correction not added to thermo.')
+
+
+
+
     def test_adsorbate_thermo_raises_error(self):
         """Test thermo generation group tree error handling.
         """
