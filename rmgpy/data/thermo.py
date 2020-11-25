@@ -1503,6 +1503,7 @@ class ThermoDatabase(object):
                     raise NotImplementedError("Can't remove surface bond of type {}".format(bond.order))
             dummy_molecule.remove_atom(site)
 
+        dummy_molecules = [dummy_molecule.copy(deep=True)]
         if len(adsorbed_atoms) == 2:
             # Bidentate adsorption.
             # Try to turn adjacent biradical into a bond.
@@ -1515,6 +1516,7 @@ class ThermoDatabase(object):
                     bond.increment_order()
                     adsorbed_atoms[0].decrement_radical()
                     adsorbed_atoms[1].decrement_radical()
+                    dummy_molecules.append(dummy_molecule.copy(deep=True))
                     if (adsorbed_atoms[0].radical_electrons and
                             adsorbed_atoms[1].radical_electrons and
                             bond.order < 3):
@@ -1522,6 +1524,7 @@ class ThermoDatabase(object):
                         bond.increment_order()
                         adsorbed_atoms[0].decrement_radical()
                         adsorbed_atoms[1].decrement_radical()
+                        dummy_molecules.append(dummy_molecule.copy(deep=True))
                     if (adsorbed_atoms[0].lone_pairs and
                             adsorbed_atoms[1].lone_pairs and 
                             bond.order < 3):
@@ -1532,6 +1535,7 @@ class ThermoDatabase(object):
                         adsorbed_atoms[0].increment_radical()
                         adsorbed_atoms[1].decrement_lone_pairs()
                         adsorbed_atoms[1].increment_radical()
+                        dummy_molecules.append(dummy_molecule.copy(deep=True))
                 #For bidentate CO because we want C[-1]#O[+1] but not .C#O.
                 if (bond.order == 3 and adsorbed_atoms[0].radical_electrons and 
                     adsorbed_atoms[1].radical_electrons and 
@@ -1542,14 +1546,20 @@ class ThermoDatabase(object):
                         adsorbed_atoms[1].increment_lone_pairs()
                     else:
                         adsorbed_atoms[0].increment_lone_pairs()
+                    dummy_molecules.append(dummy_molecule.copy(deep=True))
 
-        dummy_molecule.update_connectivity_values()
-        dummy_molecule.update()
-
-        logging.debug("After removing from surface:\n" + dummy_molecule.to_adjacency_list())
+        for dummy_molecule in dummy_molecules[:]:
+            try:
+                dummy_molecule.update_connectivity_values()
+                dummy_molecule.update()
+            except:
+                dummy_molecules.remove(dummy_molecule)
+                logging.debug(f"Removing {dummy_molecule} from possible structure list:\n{dummy_molecule.to_adjacency_list()}")
+            else:
+                logging.debug("After removing from surface:\n" + dummy_molecule.to_adjacency_list())
 
         dummy_species = Species()
-        dummy_species.molecule.append(dummy_molecule)
+        dummy_species.molecule = dummy_molecules
         dummy_species.generate_resonance_structures()
         thermo = self.get_thermo_data(dummy_species)
 
