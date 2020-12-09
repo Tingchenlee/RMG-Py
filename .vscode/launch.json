@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [ 
+        {
+            "name": "rmg.py Ammonia/testing/test_Ru_Ba",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/rmg.py",
+            "args": ["../Ammonia/testing/test_Ru_Ba/input.py"],
+            "console": "integratedTerminal",
+            "env": {"PATH": "/Users/lee.ting/Code/anaconda3/envs/rmg_env/bin/:${env:PATH}"}
+        },
+        {
+            "name": "rmg.py Ammonia/testing/test_Pt100_oxidation",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/rmg.py",
+            "args": ["../Ammonia/testing/test_Pt100_oxidation/input.py"],
+            "console": "integratedTerminal",
+            "env": {"PATH": "/Users/lee.ting/Code/anaconda3/envs/rmg_env/bin/:${env:PATH}"}
+        },
+        {
+            "name": "rmg.py Ammonia/testing/test_Fe_BEAzeolite",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/rmg.py",
+            "args": ["../Ammonia/testing/test_Fe_BEAzeolite/input.py"],
+            "console": "integratedTerminal",
+            "env": {"PATH": "/Users/lee.ting/Code/anaconda3/envs/rmg_env/bin/:${env:PATH}"}
+        },
+    ]
+}
+// "name":"Python: Current File","type":"python","request":"launch","program":"${file}","console":"integratedTerminal"},

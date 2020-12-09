@@ -1558,8 +1558,13 @@ class ThermoDatabase(object):
             else:
                 logging.debug("After removing from surface:\n" + dummy_molecule.to_adjacency_list())
 
+        if len(dummy_molecules) == 0:
+            logging.debug("No dummy molecules to get thermo model:\n")
+        else:
+            dummy_molecule = dummy_molecules[0]
+            logging.debug(f"Using {dummy_molecule.to_adjacency_list()} to get thermo model:\n")
         dummy_species = Species()
-        dummy_species.molecule = dummy_molecules
+        dummy_species.molecule.append(dummy_molecule)
         dummy_species.generate_resonance_structures()
         thermo = self.get_thermo_data(dummy_species)
 
