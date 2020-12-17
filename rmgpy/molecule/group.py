@@ -346,7 +346,7 @@ class GroupAtom(Vertex):
         where `other` can be either an :class:`Atom` or an :class:`GroupAtom`
         object. When comparing two :class:`GroupAtom` objects, this function
         respects wildcards, e.g. ``R!H`` is equivalent to ``C``.
-        
+
         """
         cython.declare(group=GroupAtom)
         if not strict:
@@ -416,7 +416,7 @@ class GroupAtom(Vertex):
         """
         Returns ``True`` if `self` is the same as `other` or is a more
         specific case of `other`. Returns ``False`` if some of `self` is not
-        included in `other` or they are mutually exclusive. 
+        included in `other` or they are mutually exclusive.
         """
         cython.declare(group=GroupAtom)
         if not isinstance(other, GroupAtom):
@@ -499,7 +499,7 @@ class GroupAtom(Vertex):
 
     def is_nitrogen(self):
         """
-        Return ``True`` if the atom represents an sulfur atom or ``False`` if not.
+        Return ``True`` if the atom represents a nitrogen atom or ``False`` if not.
         """
         all_nitrogen = [ATOMTYPES['N']] + ATOMTYPES['N'].specific
         check_list = [x in all_nitrogen for x in self.atomtype]
@@ -507,10 +507,34 @@ class GroupAtom(Vertex):
 
     def is_carbon(self):
         """
-        Return ``True`` if the atom represents an sulfur atom or ``False`` if not.
+        Return ``True`` if the atom represents a carbon atom or ``False`` if not.
         """
         all_carbon = [ATOMTYPES['C']] + ATOMTYPES['C'].specific
         check_list = [x in all_carbon for x in self.atomtype]
+        return all(check_list)
+
+    def is_fluorine(self):
+        """
+        Return ``True`` if the atom represents a fluorine atom or ``False`` if not.
+        """
+        all_fluorine = [ATOMTYPES['F']] + ATOMTYPES['F'].specific
+        check_list = [x in all_fluorine for x in self.atomtype]
+        return all(check_list)
+
+    def is_chlorine(self):
+        """
+        Return ``True`` if the atom represents a chlorine atom or ``False`` if not.
+        """
+        all_chlorine = [ATOMTYPES['Cl']] + ATOMTYPES['Cl'].specific
+        check_list = [x in all_chlorine for x in self.atomtype]
+        return all(check_list)
+
+    def is_bromine(self):
+        """
+        Return ``True`` if the atom represents a bromine atom or ``False`` if not.
+        """
+        all_bromine = [ATOMTYPES['Br']] + ATOMTYPES['Br'].specific
+        check_list = [x in all_bromine for x in self.atomtype]
         return all(check_list)
 
     def has_wildcards(self):
@@ -591,6 +615,7 @@ class GroupAtom(Vertex):
                               'F': 3,
                               'Br': 3,
                               'I': 3,
+                              'Br': 3,
                               'Ar': 4,
                               'X': 0,
                               }
@@ -766,7 +791,7 @@ class GroupBond(Edge):
         not. If `wildcards` is ``False`` we return False anytime there is more
         than one bond order, otherwise we return ``True`` if any of the options
         are single.
-        
+
         NOTE: we can replace the absolute value relation with math.isclose when
         we swtich to python 3.5+
         """
@@ -984,13 +1009,13 @@ class Group(Graph):
     """
     A representation of a molecular substructure group using a graph data
     type, extending the :class:`Graph` class. The attributes are:
-    
+
     =================== =================== ====================================
     Attribute           Type                Description
     =================== =================== ====================================
     `atoms`             ``list``            Aliases for the `vertices` storing :class:`GroupAtom`
     `multiplicity`      ``list``            Range of multiplicities accepted for the group
-    `props`             ``dict``            Dictionary of arbitrary properties/flags classifying state of Group object 
+    `props`             ``dict``            Dictionary of arbitrary properties/flags classifying state of Group object
     =================== =================== ====================================
 
     Corresponding alias methods to Molecule have also been provided.
@@ -1856,7 +1881,7 @@ class Group(Graph):
         if not isinstance(other, Group):
             raise TypeError(
                 'Got a {0} object for parameter "other", when a Group object is required.'.format(other.__class__))
-        # An identical group is always a child of itself and 
+        # An identical group is always a child of itself and
         # is the only case where that is true. Therefore
         # if we do both directions of isSubgraphIsmorphic, we need
         # to get True twice for it to be identical
@@ -2197,7 +2222,7 @@ class Group(Graph):
         are many dangling Cb or Cbf atoms not in a ring, it is likely fail. In the database test
         (the only use thus far), we will require that any group with more than 3 Cbfs have
         complete rings. This is much stricter than this method can handle, but right now
-        this method cannot handle very general cases, so it is better to be conservative. 
+        this method cannot handle very general cases, so it is better to be conservative.
         """
 
         # First define some helper functions
