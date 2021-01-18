@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {"name":"Python: Current File","type":"python","request":"launch","program":"${file}","console":"integratedTerminal"},
+        {
+            "name": "rmg.py Testing/test_ammoniaCombine",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/rmg.py",
+            "args": ["/Users/lee.ting/Code/Ammonia/testing/test_libraries/test_ammoniaCombine/input.py"],
+            "console": "integratedTerminal",
+            "env": {"PATH": "/home/lee.ting/Code/anaconda3/envs/rmg_env/bin/:${env:PATH}"},
+        }
+    ]
+}
